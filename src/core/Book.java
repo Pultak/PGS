@@ -7,11 +7,9 @@ import java.util.List;
 
 public class Book extends AFileSegment<Chapter> {
 
-    public final Volume parentVolume;
 
-    public Book(long bookStartLocation, long bookEndLocation, Volume parentVolume) {
-        super(bookStartLocation, bookEndLocation);
-        this.parentVolume = parentVolume;
+    public Book(long bookStartLocation, long bookEndLocation, int id, Volume parentVolume) {
+        super(bookStartLocation, bookEndLocation, id, parentVolume);
 
     }
 
@@ -20,8 +18,10 @@ public class Book extends AFileSegment<Chapter> {
     public void initSubSegments() {
         List<SegmentScope> segments = FileInput.findFileSegments(Const.BOOK_BEGINNING, this.startLocation, this.endLocation);
 
+        int id = 1;
         for(SegmentScope segment : segments){
-            children.add(new Chapter(segment.startLocation, segment.endLocation, this));
+            children.add(new Chapter(segment.startLocation, segment.endLocation, id, this));
+            ++id;
         }
 
     }

@@ -1,39 +1,42 @@
 package tasks;
 
+import IO.FileOutput;
 import core.Book;
 import core.Volume;
 import utils.Const;
+import utils.Functions;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
-public class UnderBossTask extends ATask<Volume> {
+public class UnderBossTask extends ATask {
 
-    public UnderBossTask(Volume volume){
-        super(volume);
+    public UnderBossTask(Volume volume, Semaphore parentSemaphore){
+        super(volume, Const.COUNT_OF_MASTER_THREADS, parentSemaphore);
     }
 
     @Override
     public void run() {
         parentSegment.initSubSegments();
-        for(Book book : parentSegment.children){
-            List<Thread> masterThreads = new ArrayList<>();
-            for(int i = 0; i < Const.COUNT_OF_UNDER_BOSS_THREADS; i++){
-                Thread thread = new Thread(new MasterTask(book));
-                masterThreads.add(thread);
-                thread.start();
-            }
-            for(Thread thread : masterThreads){
+        for(Book book : (List<Book>)parentSegment.children){
+            if(book.setAssigned()){
+                for(int i = 0; i < Const.COUNT_OF_MASTER_THREADS; i++){
+                    Thread thread = new Thread(new MasterTask(book, localSemaphore));
+                    thread.start();
+                }
                 try {
-                    thread.join();
+                    localSemaphore.acquire();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                    System.exit(1);
                 }
+                Functions.sumUpEveryWord(book.wordMap, book.children);
+                writeWordStatisticsToFile();
+                writeToAllStateFiles("Book "+book.id+" - OK");
             }
-            System.out.println("UNDER BOSS THREAD DONE");
-            //todo file writing
         }
+        System.out.println("UNDER BOSS THREAD DONE");
+        parentSemaphore.release();
+
 
     }
 }

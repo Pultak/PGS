@@ -13,12 +13,15 @@ public class FileInput {
     private static FileInputStream inputFileStream;
     private static BufferedReader inputReader;
 
+    public static String inputFileName;
+
     public static long fileSize;
 
     private static final Semaphore semaphore = new Semaphore(1);
 
 
     public static void initInput(String inputFileName){
+        FileInput.inputFileName = inputFileName;
         try{
             File inputFile = new File(inputFileName);
             fileSize = inputFile.length();

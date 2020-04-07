@@ -5,12 +5,8 @@ import java.util.List;
 
 public class Chapter extends AFileSegment<Paragraph> {
 
-    public final Book parentBook;
-
-
-    public Chapter(long chapterStartLocation, long chapterEndLocation, Book parentBook) {
-        super(chapterStartLocation, chapterEndLocation);
-        this.parentBook = parentBook;
+    public Chapter(long chapterStartLocation, long chapterEndLocation, int id, Book parentBook) {
+        super(chapterStartLocation, chapterEndLocation, id, parentBook);
     }
 
     @Override
@@ -18,8 +14,10 @@ public class Chapter extends AFileSegment<Paragraph> {
 
         List<SegmentScope> segments = FileInput.findParagraphSegments(this.startLocation, this.endLocation);
 
+        int id = 1;
         for(SegmentScope segment : segments){
-            children.add(new Paragraph(segment.startLocation, segment.endLocation, this));
+            children.add(new Paragraph(segment.startLocation, segment.endLocation, id, this));
+            ++id;
         }
 
     }

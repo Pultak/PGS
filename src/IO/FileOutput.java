@@ -1,16 +1,27 @@
 package IO;
 
+import core.AFileSegment;
+import core.Volume;
 import utils.Const;
+import utils.MutableInteger;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
+import java.nio.file.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 public class FileOutput {
 
+
+    private static Map<String, Semaphore> stateFileSemaphores = new HashMap<>();
+
+    public static String outputRootDirectory;
+    public static String inputFileName;
 
     public static void initOutputStructure(String inputFileName){
 
@@ -31,15 +42,7 @@ public class FileOutput {
             System.exit(1);
         }
 
-        File mainStateFile = new File(structureFileName+"/"+ Const.STATE_FILE_NAME);
-        File mainResultFile = new File(structureFileName+"/"+structureFileName+".txt");
-        try{
-            mainStateFile.createNewFile();
-            mainResultFile.createNewFile();
-        }catch(IOException e){
-            System.err.println("FAILED TO INIT MAIN STATE FILE!");
-            System.exit(1);
-        }
+        outputRootDirectory = structureFileName+"/";
     }
 
     private static void deleteDirectoryRecursion(Path path) throws IOException {
@@ -54,8 +57,56 @@ public class FileOutput {
     }
 
 
+    public static void writeToStateFile(String pathToFile, String line){
+        Semaphore fileSemaphore = popFromStateFileSemaphores(pathToFile);
+        try {
+            Files.write(Paths.get(pathToFile), line.getBytes(), StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        fileSemaphore.release();
+    }
+
+    private static synchronized Semaphore popFromStateFileSemaphores(String key){
+        Semaphore fileSemaphore = stateFileSemaphores.get(key);
+        if(fileSemaphore == null){
+            fileSemaphore = new Semaphore(0);
+            stateFileSemaphores.put(key, fileSemaphore);
+            File newFile = new File(key);
+            try {
+                newFile.createNewFile();
+            } catch (IOException | SecurityException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }else{
+            try {
+                fileSemaphore.acquire();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+        return fileSemaphore;
+    }
 
 
+    public static void writeWordCountToFile(String pathToFile, HashMap<String, MutableInteger> wordMap){
+        File newFile = new File(pathToFile);
+        try {
+            if(newFile.createNewFile()){
+                BufferedWriter bw = new BufferedWriter(new FileWriter(newFile));
+                for(Iterator keyIterator = wordMap.keySet().iterator(), valueIterator = wordMap.values().iterator(); keyIterator.hasNext();){
+                    bw.write(keyIterator.next()+" "+valueIterator.next()+"\n");
+                }
+                bw.close();
+            }
+        } catch (IOException | SecurityException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
 
 
 }

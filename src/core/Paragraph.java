@@ -8,8 +8,8 @@ public class Paragraph extends AFileSegment<String> {
     public final Chapter parentChapter;
 
 
-    public Paragraph(long paragraphStartLocation, long paragraphEndLocation, Chapter parentChapter) {
-        super(paragraphStartLocation, paragraphEndLocation);
+    public Paragraph(long paragraphStartLocation, long paragraphEndLocation, int id, Chapter parentChapter) {
+        super(paragraphStartLocation, paragraphEndLocation, id, parentChapter);
         this.parentChapter = parentChapter;
     }
 
