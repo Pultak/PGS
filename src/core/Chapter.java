@@ -3,7 +3,7 @@ package core;
 import IO.FileInput;
 import java.util.List;
 
-public class Chapter extends AFileSegment<Paragraph> {
+public class Chapter extends AFileSegment{
 
     public Chapter(long chapterStartLocation, long chapterEndLocation, int id, Book parentBook) {
         super(chapterStartLocation, chapterEndLocation, id, parentBook);

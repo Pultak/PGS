@@ -10,10 +10,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Semaphore;
+import java.util.stream.Collectors;
 
 public class FileOutput {
 
@@ -94,19 +93,37 @@ public class FileOutput {
 
     public static void writeWordCountToFile(String pathToFile, HashMap<String, MutableInteger> wordMap){
         File newFile = new File(pathToFile);
+        System.out.println(newFile.toString());
         try {
-            if(newFile.createNewFile()){
-                BufferedWriter bw = new BufferedWriter(new FileWriter(newFile));
-                for(Iterator keyIterator = wordMap.keySet().iterator(), valueIterator = wordMap.values().iterator(); keyIterator.hasNext();){
-                    bw.write(keyIterator.next()+" "+valueIterator.next()+"\n");
-                }
-                bw.close();
+            BufferedWriter bw = new BufferedWriter(new FileWriter(newFile));
+            List<Map.Entry<String, MutableInteger>> sortedResult = wordMap.entrySet().stream()
+                    .sorted(Map.Entry.comparingByKey()).collect(Collectors.toList());
+            for(Map.Entry<String, MutableInteger> entry : sortedResult){
+                bw.write(entry.getKey()+" "+entry.getValue().get()+"\n");
             }
+            bw.close();
+
         } catch (IOException | SecurityException e) {
             e.printStackTrace();
             System.exit(1);
         }
     }
 
+
+    public static void createOutputFiles(AFileSegment segment){
+        String basicPath = segment.getActualDirectory();
+        File directory = new File(basicPath);
+        File newStateFile = new File(basicPath + Const.STATE_FILE_NAME);
+        File newWordCountFile = new File(basicPath + segment.getClass().getSimpleName().toLowerCase() + segment.id + Const.FILE_SUFFIX);
+
+        try {
+            directory.mkdir();
+            newStateFile.createNewFile();
+            newWordCountFile.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(0);
+        }
+    }
 
 }

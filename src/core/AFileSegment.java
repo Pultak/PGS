@@ -51,7 +51,6 @@ public abstract class AFileSegment {
         StringBuilder sb = new StringBuilder();
 
         sb.append(FileOutput.outputRootDirectory);
-        sb.append("/");
         while(!stack.isEmpty()){
             AFileSegment actualSegment = stack.pop();
             sb.append(actualSegment.getClass().getSimpleName().toLowerCase());

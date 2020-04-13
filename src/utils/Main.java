@@ -55,7 +55,7 @@ public class Main {
     public static void initVolumeSegments(){
         List<SegmentScope> segments = FileInput.findFileSegments(Const.VOLUME_BEGINNING, 0, FileInput.fileSize);
         volumes = new ArrayList<>();
-        int i = 0;
+        int i = 1;
         for(SegmentScope segment : segments){
             volumes.add(new Volume(segment.startLocation, segment.endLocation, i));
             ++i;

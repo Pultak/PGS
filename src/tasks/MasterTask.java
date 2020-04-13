@@ -1,5 +1,6 @@
 package tasks;
 
+import IO.FileOutput;
 import core.Book;
 import core.Chapter;
 import utils.Const;
@@ -19,7 +20,8 @@ public class MasterTask extends ATask{
         parentSegment.initSubSegments();
         for(Chapter chapter : (List<Chapter>)parentSegment.children){
             if(chapter.setAssigned()){
-                for(int i = 0; i < Const.COUNT_OF_FOREMAN_THREADS; i++){
+                FileOutput.createOutputFiles(chapter);
+                for(int i = 0; i < Const.COUNT_OF_FOREMAN_THREADS; ++i){
                     Thread thread = new Thread(new ForemanTask(chapter, localSemaphore));
                     thread.start();
                 }
@@ -31,8 +33,8 @@ public class MasterTask extends ATask{
                 }
 
                 Functions.sumUpEveryWord(chapter.wordMap, chapter.children);
-                writeWordStatisticsToFile();
-                writeToAllStateFiles("Chapter "+chapter.id+" - OK");
+                writeWordStatisticsToFile(chapter);
+                writeToAllStateFiles(chapter);
             }
         }
 

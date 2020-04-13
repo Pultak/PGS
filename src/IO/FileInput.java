@@ -3,15 +3,13 @@ package IO;
 import core.SegmentScope;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
 public class FileInput {
 
-    private static FileInputStream inputFileStream;
-    private static BufferedReader inputReader;
+    private static RandomAccessFile inputFile;
 
     public static String inputFileName;
 
@@ -25,8 +23,7 @@ public class FileInput {
         try{
             File inputFile = new File(inputFileName);
             fileSize = inputFile.length();
-            inputFileStream = new FileInputStream(inputFile);
-            inputReader = new BufferedReader(new InputStreamReader(inputFileStream, StandardCharsets.UTF_8));
+            FileInput.inputFile = new RandomAccessFile(inputFile, "r");
         }catch(FileNotFoundException e){
             System.err.println("INPUT FILE NOT FOUND!!");
             System.err.println(e.toString());
@@ -36,7 +33,7 @@ public class FileInput {
 
     public static void closeAllInputs(){
         try{
-            inputFileStream.close();
+            inputFile.close();
         }catch(IOException e){
             System.err.println("Cant close input file because: ");
             System.err.println(e.toString());
@@ -48,26 +45,35 @@ public class FileInput {
         try{
             semaphore.acquire();
 
+            String regex = desiredSegment+" .+[—|-].+";
+
             List<SegmentScope> result = new ArrayList<>();
-            inputFileStream.getChannel().position(startLocation);
+            inputFile.seek(startLocation);
 
             long segmentStartPosition = startLocation;
+            String line = inputFile.readLine();
 
-
-            String line = inputReader.readLine();
-            while(inputFileStream.getChannel().position() < endLocation){
-
-                if(line.contains(desiredSegment)){
-                    long segmentEndPosition = inputFileStream.getChannel().position();
-                    result.add(new SegmentScope(segmentStartPosition, segmentEndPosition));
-                    segmentStartPosition = inputFileStream.getChannel().position();
+            while(inputFile.getFilePointer() < endLocation){
+                if(line.matches(regex)){
+                    segmentStartPosition = inputFile.getFilePointer();
+                    break;
                 }
-
-                line = inputReader.readLine();
+                line = inputFile.readLine();
             }
-            result.add(new SegmentScope(segmentStartPosition, inputFileStream.getChannel().position()));
+
+            line = inputFile.readLine();
+            while(inputFile.getFilePointer() < endLocation){
+                if(line.matches(regex)){
+                    long segmentEndPosition = inputFile.getFilePointer();
+                    result.add(new SegmentScope(segmentStartPosition, segmentEndPosition));
+                    segmentStartPosition = inputFile.getFilePointer();
+                }
+                line = inputFile.readLine();
+            }
+            result.add(new SegmentScope(segmentStartPosition, inputFile.getFilePointer()));
 
             semaphore.release();
+            System.out.println("\""+regex+"\" and found: "+result.size());
             return result;
         }catch(IOException | InterruptedException e){
             System.err.println(e.toString());
@@ -82,25 +88,25 @@ public class FileInput {
             semaphore.acquire();
 
             List<SegmentScope> result = new ArrayList<>();
-            inputFileStream.getChannel().position(startLocation);
+            inputFile.seek(startLocation);
 
             long segmentStartPosition = startLocation;
 
             boolean insideParagraph = false;
-            String line = inputReader.readLine();
-            while(inputFileStream.getChannel().position() < endLocation){
+            String line = inputFile.readLine();
+            while(inputFile.getFilePointer() < endLocation){
 
                 if(line.length() != 0){
                     insideParagraph = true;
                 }else{
                     if(insideParagraph){
-                        result.add(new SegmentScope(segmentStartPosition, inputFileStream.getChannel().position()));
+                        result.add(new SegmentScope(segmentStartPosition, inputFile.getFilePointer()));
                         insideParagraph = false;
                     }
-                    segmentStartPosition = inputFileStream.getChannel().position();
+                    segmentStartPosition = inputFile.getFilePointer();
                 }
 
-                line = inputReader.readLine();
+                line = inputFile.readLine();
             }
 
             semaphore.release();
@@ -117,13 +123,13 @@ public class FileInput {
             semaphore.acquire();
 
             List<String> result = new ArrayList<>();
-            inputFileStream.getChannel().position(startLocation);
+            inputFile.seek(startLocation);
 
-            String line = inputReader.readLine();
-            while(inputFileStream.getChannel().position() < endLocation){
+            String line = inputFile.readLine();
+            while(inputFile.getFilePointer() < endLocation){
                 result.add(line);
 
-                line = inputReader.readLine();
+                line = inputFile.readLine();
             }
             result.add(line);
 

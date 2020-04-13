@@ -1,6 +1,6 @@
 package utils;
 
-public class MutableInteger{
+public class MutableInteger implements Comparable<MutableInteger>{
 
     int value;
 
@@ -24,4 +24,8 @@ public class MutableInteger{
         return value;
     }
 
+    @Override
+    public int compareTo(MutableInteger o) {
+        return Integer.compare(value, o.value);
+    }
 }

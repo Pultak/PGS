@@ -20,6 +20,7 @@ public class UnderBossTask extends ATask {
         parentSegment.initSubSegments();
         for(Book book : (List<Book>)parentSegment.children){
             if(book.setAssigned()){
+                FileOutput.createOutputFiles(book);
                 for(int i = 0; i < Const.COUNT_OF_MASTER_THREADS; i++){
                     Thread thread = new Thread(new MasterTask(book, localSemaphore));
                     thread.start();
@@ -30,8 +31,8 @@ public class UnderBossTask extends ATask {
                     e.printStackTrace();
                 }
                 Functions.sumUpEveryWord(book.wordMap, book.children);
-                writeWordStatisticsToFile();
-                writeToAllStateFiles("Book "+book.id+" - OK");
+                writeWordStatisticsToFile(book);
+                writeToAllStateFiles(book);
             }
         }
         System.out.println("UNDER BOSS THREAD DONE");

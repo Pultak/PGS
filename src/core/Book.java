@@ -5,12 +5,11 @@ import utils.Const;
 
 import java.util.List;
 
-public class Book extends AFileSegment<Chapter> {
+public class Book extends AFileSegment {
 
 
     public Book(long bookStartLocation, long bookEndLocation, int id, Volume parentVolume) {
         super(bookStartLocation, bookEndLocation, id, parentVolume);
-
     }
 
 

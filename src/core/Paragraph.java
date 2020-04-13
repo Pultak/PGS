@@ -3,14 +3,12 @@ package core;
 import IO.FileInput;
 
 
-public class Paragraph extends AFileSegment<String> {
+public class Paragraph extends AFileSegment {
 
-    public final Chapter parentChapter;
 
 
     public Paragraph(long paragraphStartLocation, long paragraphEndLocation, int id, Chapter parentChapter) {
         super(paragraphStartLocation, paragraphEndLocation, id, parentChapter);
-        this.parentChapter = parentChapter;
     }
 
     @Override

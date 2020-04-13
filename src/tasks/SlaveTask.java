@@ -15,16 +15,16 @@ public class SlaveTask extends ATask {
     @Override
     public void run() {
         for(String line : (List<String>)parentSegment.children){
-            String regularLine = line.replaceAll("[^\\w\\s]|[\\d]", "").trim()
-                    .replaceAll(" +", " ").toLowerCase();
-            String[] words = regularLine.split("");
+            String[] words = line.toLowerCase().trim().split("[^a-z]+");
             for(String word : words){
-                MutableInteger count = (MutableInteger) parentSegment.wordMap.get(word);
-                if(count == null){
-                    parentSegment.wordMap.put(word, new MutableInteger());
-                }else{
-                    count.increment();
-                }
+                //if(word.length() > 0){
+                    MutableInteger count = parentSegment.wordMap.get(word);
+                    if(count == null){
+                        parentSegment.wordMap.put(word, new MutableInteger());
+                    }else{
+                        count.increment();
+                    }
+                //}
             }
         }
         System.out.println("Slave done!");

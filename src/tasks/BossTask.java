@@ -20,6 +20,7 @@ public class BossTask extends ATask {
         for(Volume volume : Main.volumes){
             //is volume free?
             if(volume.setAssigned()){
+                FileOutput.createOutputFiles(volume);
                 for(int i = 0; i < Const.COUNT_OF_UNDER_BOSS_THREADS; i++){
                     Thread thread = new Thread(new UnderBossTask(volume, localSemaphore));
                     thread.start();
@@ -33,8 +34,8 @@ public class BossTask extends ATask {
                 }
 
                 Functions.sumUpEveryWord(volume.wordMap, volume.children);
-                writeWordStatisticsToFile();
-                writeToAllStateFiles("Volume "+volume.id+" - OK");
+                writeWordStatisticsToFile(volume);
+                writeToAllStateFiles(volume);
             }
         }
         System.out.println("BOSS THREAD DONE");
