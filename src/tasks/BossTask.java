@@ -1,7 +1,7 @@
 package tasks;
 
 import IO.FileOutput;
-import core.Volume;
+import segments.Volume;
 import utils.Const;
 import utils.Functions;
 import utils.Main;
@@ -20,6 +20,7 @@ public class BossTask extends ATask {
         for(Volume volume : Main.volumes){
             //is volume free?
             if(volume.setAssigned()){
+                volume.initSubSegments();
                 FileOutput.createOutputFiles(volume);
                 for(int i = 0; i < Const.COUNT_OF_UNDER_BOSS_THREADS; i++){
                     Thread thread = new Thread(new UnderBossTask(volume, localSemaphore));
@@ -27,7 +28,7 @@ public class BossTask extends ATask {
                 }
 
                 try {
-                    localSemaphore.acquire();
+                    localSemaphore.acquire(Const.COUNT_OF_UNDER_BOSS_THREADS);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                     System.exit(1);
@@ -38,7 +39,7 @@ public class BossTask extends ATask {
                 writeToAllStateFiles(volume);
             }
         }
-        System.out.println("BOSS THREAD DONE");
+        //System.out.println("BOSS THREAD DONE!");
         parentSemaphore.release();
     }
 }

@@ -1,0 +1,102 @@
+% !TeX spellcheck = cs_CZ
+\documentclass[ 12pt, a4paper]{article}
+\usepackage{lmodern}
+\usepackage[utf8]{inputenc}
+\usepackage[czech]{babel}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{indentfirst}
+
+\begin{document}
+\def\code#1{\texttt{#1}}
+
+\pagenumbering{gobble} %bez cisel
+%
+%Titulni strana
+\centerline{\includegraphics[width=12cm]{logo.png}}
+\vspace*{50px}
+\begin{center}
+	{\LARGE\bf\noindent KIV/PGS \\ SEMESTRÁLNÍ PRÁCE 2019/20\\ Práce s vlákny}\\
+	\vspace*{40px}  
+	
+	Tomáš Ott\\
+	(A17B0314P)\\
+	\vspace*{\fill}  
+	\hspace*{\fill} \today \\
+\end{center}
+\newpage
+%Obsah
+\tableofcontents
+\newpage
+
+\section{Uživatelská příručka}
+Aplikaci je možné spustit z terminálu pomocí příkazu \texttt{java -jar PGS\_OTT.jar <název-souboru>}. Při chodu programu nebude generován žádný výstup do terminálu. Výsledek aplikace bude zapsán do složky pod jménem \texttt{<název-souboru>} a bude obsahovat požadovanou strukturu. \\
+
+Počet spuštěných vláken lze modifikovat v souboru \texttt{configuration.json}. Soubor musí obsahovat přesně dané JSON objekty jinak nebude možné nastavit aplikaci. Struktura souboru by měla vypadat následovně: \\
+\texttt{\{\\
+	"BOSS": <počet-vláken>,\\
+	"UNDERBOSS": <počet-vláken>,\\
+	"MASTER": <počet-vláken>,\\
+	"FOREMAN": <počet-vláken>,\\
+	"SLAVE": <počet-vláken>\\
+\}} 
+
+
+
+\newpage
+
+
+\section{Kritické sekce}
+
+\subsection{Vstupní soubor}
+Práce se vstupním souborem je jedna z prvních problémů, na které je možné narazit. Čtení ze souboru by mělo být vyhrazené pouze pro jedno vlákno. Zmíněnou kritickou sekci jsem ošetřil automatem ve třídě „FileInput", které zajistí, že čtení ze souboru může provádět pouze jedno vlákno.
+
+\subsection{Výstupní stavové soubory}
+Jelikož součástí zadání je bezprostřední zápis jednotlivých vláken do stavového souboru, je potřeba ošetřit možné kolize výstupů. Pro tento problém jsem využil mapu semaforů, která obsahuje semafor pro každý existující stavový soubor.
+
+
+\subsection{Přiřazení segmentů}
+Jednotlivé souborové segmenty jsou při chodu aplikace rozdělovány mezi zadaný počet vláken. Může však nastat problém přiřazení jednoho segmentu dvěma různým vláknům. Tuto skutečnost jsem ošetřil pomocí funkce \texttt{setAssigned}, která nastaví „flag" \texttt{isAssigned} na „true" a navrátí vláknu skutečnost jestli vlastní klíč ke zmíněnému segmentu. 
+
+\newpage
+
+\section{Závěr}
+
+Po dokončení vývoje aplikace přišlo na řadu testování konfigurace. Všechny zkoušené výsledky jsem přehledně zapsal do tabulky.
+
+\begin{center}
+	\begin{tabular}{||c c c c c c||} 
+		\hline
+		Boss & Under-Boss & Master & Foreman & Slave & Potřebných sekund \\ [0.5ex] 
+		\hline\hline
+		1 & 1 & 1 & 1 & 1 & 6,5\\ [1ex]
+		\hline
+		4 & 1 & 1 & 1 & 1 & 5,8\\ [1ex]
+		\hline
+		1 & 4 & 1 & 1 & 1 & 5,9\\ [1ex]
+		\hline
+		1 & 1 & 4 & 1 & 1 & 6,0\\ [1ex]
+		\hline
+		1 & 1 & 1 & 4 & 1 & 6,2\\ [1ex]
+		\hline
+		1 & 1 & 1 & 1 & 4 & 7,9\\ [1ex]
+		\hline
+		4 & 3 & 2 & 1 & 1 & 5,7\\ [1ex]
+		\hline
+		3 & 3 & 1 & 1 & 1 & 5,6\\ [1ex]
+		\hline
+		5 & 20 & 10 & 10 & 10 & 24,0\\ [1ex]
+		\hline
+		5 & 5 & 10 & 10 & 30 & 37,5\\  [1ex] 
+		\hline
+	\end{tabular}
+\end{center}
+
+Z této tabulky je možné vyčíst, že čím více spustíme vláken nižší úrovně, tím déle trvá chod programu. To je způsobené častějším křížením jednotlivých vláken a jejich postupné blokování. Nejlepší výsledek jsem získal při konfiguraci [3|3|1|1|1], kde chod aplikace trval 5,6 sekund. Naopak nejdelší zkoušený pokus při konfiguraci [5|5|10|10|30] trval 37,5 sekundy. U této konfigurace je jasně vidět, že více vláken rozhodně neznamená rychlejší chod aplikace.\\
+
+
+Aplikace byla testována na počítači, který má procesor AMD Ryzen 5 o frekvenci 3.6 GHz, 16 GB operační paměti RAM, SSD disk a operační systém Ubuntu 19.10 Linux.
+
+
+\end{document}

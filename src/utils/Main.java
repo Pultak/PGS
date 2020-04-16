@@ -2,9 +2,7 @@ package utils;
 
 import IO.FileInput;
 import IO.FileOutput;
-import core.AFileSegment;
-import core.SegmentScope;
-import core.Volume;
+import segments.*;
 import tasks.BossTask;
 
 import java.util.ArrayList;
@@ -24,15 +22,16 @@ public class Main {
             System.exit(1);
         }
 
+        FileInput.loadConfigurationFile();
         initEssentials(args[0]);
 
-        Semaphore mainSemaphore = new Semaphore(Const.COUNT_OF_BOSS_THREADS * -1 + 1);
+        Semaphore mainSemaphore = new Semaphore(0);
         for(int i = 0; i < Const.COUNT_OF_BOSS_THREADS; i++){
             Thread thread = new Thread(new BossTask(mainSemaphore));
             thread.start();
         }
         try {
-            mainSemaphore.acquire();
+            mainSemaphore.acquire(Const.COUNT_OF_BOSS_THREADS);
         } catch (InterruptedException e) {
             e.printStackTrace();
             System.exit(1);

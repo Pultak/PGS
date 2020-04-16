@@ -1,9 +1,8 @@
 package tasks;
 
 
-import IO.FileInput;
 import IO.FileOutput;
-import core.AFileSegment;
+import segments.AFileSegment;
 import utils.Const;
 
 import java.util.concurrent.Semaphore;
@@ -16,12 +15,16 @@ public abstract class ATask implements Runnable {
 
     public ATask(AFileSegment parentSegment, int countOfSubThreads, Semaphore parentSemaphore){
         this.parentSegment = parentSegment;
-        this.localSemaphore = new Semaphore(countOfSubThreads * -1 + 1);
+        this.localSemaphore = new Semaphore(0);
         this.parentSemaphore = parentSemaphore;
-        System.out.println(this.getClass().getSimpleName()+" started!");
+        //System.out.println(this.getClass().getSimpleName()+" started! works for: "+parentSegment);
     }
 
 
+    /**
+     * Method that writes to actual directory state file and into every parent directory located inside file system
+     * @param actualNode actual segment
+     */
     public void writeToAllStateFiles(AFileSegment actualNode){
         AFileSegment actualSegment = actualNode;
         String line = "OK\n";
@@ -34,6 +37,10 @@ public abstract class ATask implements Runnable {
 
     }
 
+    /**
+     * Writes word statistics under actual segment directory
+     * @param actualNode actual segment
+     */
     public void writeWordStatisticsToFile(AFileSegment actualNode){
         String segmentName = actualNode.getClass().getSimpleName().toLowerCase() + actualNode.id;
         FileOutput.writeWordCountToFile(actualNode.getActualDirectory() + segmentName

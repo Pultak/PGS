@@ -1,4 +1,4 @@
-package core;
+package segments;
 
 public class SegmentScope {
 
@@ -9,5 +9,4 @@ public class SegmentScope {
         this.startLocation = startLocation;
         this.endLocation = endLocation;
     }
-
 }

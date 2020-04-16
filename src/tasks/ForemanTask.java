@@ -1,9 +1,8 @@
 package tasks;
 
-import core.Chapter;
-import core.Paragraph;
+import segments.Chapter;
+import segments.Paragraph;
 import utils.Const;
-import utils.Functions;
 
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -15,24 +14,25 @@ public class ForemanTask extends ATask{
 
     @Override
     public void run() {
-        parentSegment.initSubSegments();
-        for(Paragraph paragraph : (List<Paragraph>)parentSegment.children){
+        List<Paragraph> list = (List<Paragraph>)parentSegment.children;
+        for(int i = 0; i < list.size(); i++){
+            Paragraph paragraph = list.get(i);
+            //is paragraph free?
             if(paragraph.setAssigned()){
                 paragraph.initSubSegments();
-                for(int i = 0; i < Const.COUNT_OF_SLAVE_THREADS; i++){
+                for(int j = 0; j < Const.COUNT_OF_SLAVE_THREADS; j++){
                     Thread thread = new Thread(new SlaveTask(paragraph, localSemaphore));
                     thread.start();
                 }
                 try {
-                    localSemaphore.acquire();
+                    localSemaphore.acquire(Const.COUNT_OF_SLAVE_THREADS);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                     System.exit(1);
                 }
             }
         }
-        Functions.sumUpEveryWord(parentSegment.wordMap, parentSegment.children);
-        System.out.println("FOREMAN THREAD DONE");
+        //System.out.println("FOREMAN THREAD DONE ("+parentSegment+")");
         parentSemaphore.release();
     }
 }

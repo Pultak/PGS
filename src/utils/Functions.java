@@ -1,6 +1,6 @@
 package utils;
 
-import core.AFileSegment;
+import segments.AFileSegment;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -9,6 +9,11 @@ import java.util.List;
 public class Functions {
 
 
+    /**
+     * Method used to sum up every word count located under every sub-segment
+     * @param resultMap map to be sumed into
+     * @param listOfFragments list of sub-segments
+     */
     public static void sumUpEveryWord(HashMap<String, MutableInteger> resultMap, List listOfFragments){
         for(AFileSegment fragment : (List<AFileSegment>)listOfFragments){
             for(Iterator keys = fragment.wordMap.keySet().iterator(), values = fragment.wordMap.values().iterator(); keys.hasNext();){
