@@ -64,7 +64,7 @@ public abstract class ATask implements Runnable {
         isTaskFree = false;
         localSemaphore.release();
         ++currentlyWorkingThreads;
-        System.out.println(this.getClass().getSimpleName() + taskID + " assigned to "+parentSegment+"! from " + Thread.currentThread().getId());
+        //System.out.println(this.getClass().getSimpleName() + taskID + " assigned to "+parentSegment+"! from " + Thread.currentThread().getId());
         ++assignCount;
     }
 
@@ -72,7 +72,7 @@ public abstract class ATask implements Runnable {
         this.parentSemaphore = null;
         this.parentSegment = null;
         this.isTaskFree = true;
-        System.out.println(this.getClass().getSimpleName() + taskID + " freed!");
+        //System.out.println(this.getClass().getSimpleName() + taskID + " freed!");
         TaskManager.TASK_MANAGER.allTasks.get(taskType).getKey().release();
         ++freedCount;
         --currentlyWorkingThreads;
@@ -113,6 +113,6 @@ public abstract class ATask implements Runnable {
             e.printStackTrace();
             System.exit(1);
         }
-        System.out.println(this.getClass().getSimpleName() + taskID + " first assign!");
+        //System.out.println(this.getClass().getSimpleName() + taskID + " first assign!");
     }
 }

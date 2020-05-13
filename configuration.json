@@ -1,8 +1,7 @@
 {
-  "BOSS": 10,
-  "UNDERBOSS": 10,
+  "BOSS": 5,
+  "UNDERBOSS": 5,
   "MASTER": 10,
   "FOREMAN": 10,
-  "SLAVE": 10
-
+  "SLAVE": 30
 }

@@ -4,7 +4,6 @@ import IO.FileInput;
 import IO.FileOutput;
 import segments.*;
 import tasks.ATask;
-import tasks.BossTask;
 import tasks.Task;
 import tasks.TaskManager;
 
@@ -45,7 +44,6 @@ public class Main {
 
         FileInput.closeAllInputs();
         TaskManager.TASK_MANAGER.killAllThreads();
-        System.out.println(ATask.assignCount+"/"+ATask.freedCount);
     }
 
     public static void initEssentials(String fileName){

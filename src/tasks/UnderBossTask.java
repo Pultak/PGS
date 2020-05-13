@@ -14,11 +14,14 @@ public class UnderBossTask extends ATask {
     public void run() {
         waitForFirstAssignment();
         while(TaskManager.threadsNeeded) {
-            for (Book book : (List<Book>) parentSegment.children) {
-                //is book free?
-                if (book.setAssigned()) {
-                    prepareFieldAndAcquireWorkers(book, Task.MasterTask);
-                    parentSemaphore.release();
+
+            if(parentSegment != null) {
+                for (Book book : (List<Book>) parentSegment.children) {
+                    //is book free?
+                    if (book.setAssigned()) {
+                        prepareFieldAndAcquireWorkers(book, Task.MasterTask);
+                        parentSemaphore.release();
+                    }
                 }
             }
             //System.out.println("UNDER BOSS THREAD DONE! ("+parentSegment+")");

@@ -14,6 +14,7 @@ public class BossTask extends ATask {
     public void run() {
         waitForFirstAssignment();
         while(TaskManager.threadsNeeded) {
+
             for (Volume volume : Main.volumes) {
                 //is volume free?
                 if (volume.setAssigned()) {

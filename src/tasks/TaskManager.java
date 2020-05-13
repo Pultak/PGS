@@ -1,8 +1,8 @@
 package tasks;
 
-import javafx.util.Pair;
 import utils.Const;
 import utils.MutableInteger;
+import utils.MyEntry;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,7 +24,7 @@ public class TaskManager {
     /**
      * hasmap of tasks and their semaphore
      */
-    public HashMap<Task, Pair<Semaphore, List<ATask>>> allTasks;
+    public HashMap<Task, MyEntry<Semaphore, List<ATask>>> allTasks;
 
     private TaskManager(){
         allTasks = new HashMap<>();
@@ -44,7 +44,7 @@ public class TaskManager {
         }));
     }
 
-    private List<Pair<Semaphore, List<ATask>>> initLists(){
+    private List<MyEntry<Semaphore, List<ATask>>> initLists(){
         List<ATask> bossList = new ArrayList<>();
         for(int i = 0; i < Const.COUNT_OF_BOSS_THREADS; i++){
             bossList.add(new BossTask(i));
@@ -65,12 +65,12 @@ public class TaskManager {
         for(int i = 0; i < Const.COUNT_OF_SLAVE_THREADS; i++){
             slaveList.add(new SlaveTask(i));
         }
-        return new ArrayList<Pair<Semaphore, List<ATask>>>(){{
-            add(new Pair<>(new Semaphore(Const.COUNT_OF_BOSS_THREADS), bossList));
-            add(new Pair<>(new Semaphore(Const.COUNT_OF_UNDER_BOSS_THREADS), underBossList));
-            add(new Pair<>(new Semaphore(Const.COUNT_OF_MASTER_THREADS), masterList));
-            add(new Pair<>(new Semaphore(Const.COUNT_OF_FOREMAN_THREADS), foremanList));
-            add(new Pair<>(new Semaphore(Const.COUNT_OF_SLAVE_THREADS), slaveList));}};
+        return new ArrayList<MyEntry<Semaphore, List<ATask>>>(){{
+            add(new MyEntry<>(new Semaphore(Const.COUNT_OF_BOSS_THREADS), bossList));
+            add(new MyEntry<>(new Semaphore(Const.COUNT_OF_UNDER_BOSS_THREADS), underBossList));
+            add(new MyEntry<>(new Semaphore(Const.COUNT_OF_MASTER_THREADS), masterList));
+            add(new MyEntry<>(new Semaphore(Const.COUNT_OF_FOREMAN_THREADS), foremanList));
+            add(new MyEntry<>(new Semaphore(Const.COUNT_OF_SLAVE_THREADS), slaveList));}};
     }
 
 
@@ -80,7 +80,7 @@ public class TaskManager {
      * @return free thread / if there is no free thread then return null
      */
     public ATask getThread(Task desiredType){
-        Pair<Semaphore, List<ATask>> taskPair = null;
+        MyEntry<Semaphore, List<ATask>> taskPair = null;
         switch (desiredType){
             case BossTask:
                 taskPair = allTasks.get(Task.BossTask);

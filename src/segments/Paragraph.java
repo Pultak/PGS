@@ -25,8 +25,8 @@ public class Paragraph extends AFileSegment {
     public synchronized boolean assignLineToThread(int lineId){
         boolean result = usedLines[lineId];
         usedLines[lineId] = true;
-        if(!result)
-            System.out.println("assigning "+lineId+" to "+Thread.currentThread().getId());
+        /*if(!result)
+            System.out.println("assigning "+lineId+" to "+Thread.currentThread().getId());*/
         return !result;
     }
 }
