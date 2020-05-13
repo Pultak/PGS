@@ -152,7 +152,6 @@ public class FileInput {
             String line = inputFile.readLine();
             while(inputFile.getFilePointer() < endLocation){
                 result.add(line);
-
                 line = inputFile.readLine();
             }
             if(!line.equals("")){

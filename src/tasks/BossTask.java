@@ -1,45 +1,28 @@
 package tasks;
 
-import IO.FileOutput;
 import segments.Volume;
-import utils.Const;
-import utils.Functions;
 import utils.Main;
-
-import java.util.concurrent.Semaphore;
 
 
 public class BossTask extends ATask {
 
-    public BossTask(Semaphore parentSemaphore){
-        super(null, Const.COUNT_OF_UNDER_BOSS_THREADS, parentSemaphore);
+    public BossTask(int taskID) {
+        super(taskID);
     }
 
     @Override
     public void run() {
-        for(Volume volume : Main.volumes){
-            //is volume free?
-            if(volume.setAssigned()){
-                volume.initSubSegments();
-                FileOutput.createOutputFiles(volume);
-                for(int i = 0; i < Const.COUNT_OF_UNDER_BOSS_THREADS; i++){
-                    Thread thread = new Thread(new UnderBossTask(volume, localSemaphore));
-                    thread.start();
+        waitForFirstAssignment();
+        while(TaskManager.threadsNeeded) {
+            for (Volume volume : Main.volumes) {
+                //is volume free?
+                if (volume.setAssigned()) {
+                    prepareFieldAndAcquireWorkers(volume, Task.UnderBossTask);
                 }
-
-                try {
-                    localSemaphore.acquire(Const.COUNT_OF_UNDER_BOSS_THREADS);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    System.exit(1);
-                }
-
-                Functions.sumUpEveryWord(volume.wordMap, volume.children);
-                writeWordStatisticsToFile(volume);
-                writeToAllStateFiles(volume);
             }
+            //System.out.println("BOSS THREAD DONE!");
+            parentSemaphore.release();
+            freeTask(Task.BossTask);
         }
-        //System.out.println("BOSS THREAD DONE!");
-        parentSemaphore.release();
     }
 }

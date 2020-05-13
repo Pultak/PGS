@@ -1,38 +1,44 @@
 package tasks;
 
-import segments.Chapter;
+import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import segments.Paragraph;
-import utils.Const;
 
 import java.util.List;
-import java.util.concurrent.Semaphore;
 public class ForemanTask extends ATask{
 
-    public ForemanTask(Chapter chapter, Semaphore parentSemaphore){
-        super(chapter, Const.COUNT_OF_SLAVE_THREADS, parentSemaphore);
+    public ForemanTask(int taskID) {
+        super(taskID);
     }
 
     @Override
     public void run() {
-        List<Paragraph> list = (List<Paragraph>)parentSegment.children;
-        for(int i = 0; i < list.size(); i++){
-            Paragraph paragraph = list.get(i);
-            //is paragraph free?
-            if(paragraph.setAssigned()){
-                paragraph.initSubSegments();
-                for(int j = 0; j < Const.COUNT_OF_SLAVE_THREADS; j++){
-                    Thread thread = new Thread(new SlaveTask(paragraph, localSemaphore));
-                    thread.start();
-                }
-                try {
-                    localSemaphore.acquire(Const.COUNT_OF_SLAVE_THREADS);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    System.exit(1);
+        waitForFirstAssignment();
+        while(TaskManager.threadsNeeded) {
+            List<Paragraph> list = (List<Paragraph>) parentSegment.children;
+            for (int i = 0; i < list.size(); i++) {
+                Paragraph paragraph = list.get(i);
+                //is paragraph free?
+                if (paragraph.setAssigned()) {
+                    paragraph.initSubSegments();
+                    int segmentSize = paragraph.children.size();
+                    while(localSemaphore.availablePermits() != segmentSize){
+
+                        ATask worker = TaskManager.TASK_MANAGER.getThread(Task.SlaveTask);
+                        if(worker != null){
+                            worker.setTaskAssigned(paragraph, localSemaphore);
+                        }
+                    }
+                    try {
+                        localSemaphore.acquire(segmentSize);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        System.exit(1);
+                    }
+                    parentSemaphore.release();
                 }
             }
+            //System.out.println("FOREMAN THREAD DONE ("+parentSegment+")");
+            freeTask(Task.ForemanTask);
         }
-        //System.out.println("FOREMAN THREAD DONE ("+parentSegment+")");
-        parentSemaphore.release();
     }
 }

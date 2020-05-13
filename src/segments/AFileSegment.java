@@ -14,7 +14,6 @@ public abstract class AFileSegment {
     public final long endLocation;
     public final int id;
     public final List children = new ArrayList<>();
-    public final Semaphore wordMapSemaphore = new Semaphore(1);
 
     boolean isAssigned = false;
     public HashMap<String, MutableInteger> wordMap = new HashMap<>();

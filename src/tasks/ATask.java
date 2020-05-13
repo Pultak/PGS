@@ -4,19 +4,29 @@ package tasks;
 import IO.FileOutput;
 import segments.AFileSegment;
 import utils.Const;
+import utils.Functions;
 
 import java.util.concurrent.Semaphore;
 
 public abstract class ATask implements Runnable {
 
-    protected final AFileSegment parentSegment;
-    protected final Semaphore localSemaphore;
-    protected final Semaphore parentSemaphore;
+    public int taskID;
 
-    public ATask(AFileSegment parentSegment, int countOfSubThreads, Semaphore parentSemaphore){
-        this.parentSegment = parentSegment;
+    public AFileSegment parentSegment;
+    public Semaphore parentSemaphore;
+
+    protected final Semaphore localSemaphore;
+
+    public boolean isTaskFree = true;
+
+    private int currentlyWorkingThreads = 0;
+
+    public static int assignCount = 0;
+    public static int freedCount = 0;
+
+    public ATask(int taskID){
         this.localSemaphore = new Semaphore(0);
-        this.parentSemaphore = parentSemaphore;
+        this.taskID = taskID;
         //System.out.println(this.getClass().getSimpleName()+" started! works for: "+parentSegment);
     }
 
@@ -48,4 +58,61 @@ public abstract class ATask implements Runnable {
     }
 
 
+    public void setTaskAssigned(AFileSegment parentSegment, Semaphore parentSemaphore){
+        this.parentSegment = parentSegment;
+        this.parentSemaphore = parentSemaphore;
+        isTaskFree = false;
+        localSemaphore.release();
+        ++currentlyWorkingThreads;
+        System.out.println(this.getClass().getSimpleName() + taskID + " assigned to "+parentSegment+"! from " + Thread.currentThread().getId());
+        ++assignCount;
+    }
+
+    public void freeTask(Task taskType){
+        this.parentSemaphore = null;
+        this.parentSegment = null;
+        this.isTaskFree = true;
+        System.out.println(this.getClass().getSimpleName() + taskID + " freed!");
+        TaskManager.TASK_MANAGER.allTasks.get(taskType).getKey().release();
+        ++freedCount;
+        --currentlyWorkingThreads;
+        try {
+            localSemaphore.acquire();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+    protected void prepareFieldAndAcquireWorkers(AFileSegment segment, Task childTaskType){
+        segment.initSubSegments();
+        int segmentSize = segment.children.size();
+        FileOutput.createOutputFiles(segment);
+
+        while(localSemaphore.availablePermits() != segmentSize){
+            ATask worker = TaskManager.TASK_MANAGER.getThread(childTaskType);
+            if(worker != null){
+                worker.setTaskAssigned(segment, localSemaphore);
+            }
+        }
+        try {
+            localSemaphore.acquire(segmentSize);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        Functions.sumUpEveryWord(segment.wordMap, segment.children);
+        writeWordStatisticsToFile(segment);
+        writeToAllStateFiles(segment);
+    }
+
+    protected void waitForFirstAssignment(){
+        try {
+            localSemaphore.acquire();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        System.out.println(this.getClass().getSimpleName() + taskID + " first assign!");
+    }
 }

@@ -3,7 +3,10 @@ package utils;
 import IO.FileInput;
 import IO.FileOutput;
 import segments.*;
+import tasks.ATask;
 import tasks.BossTask;
+import tasks.Task;
+import tasks.TaskManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,7 +16,6 @@ import java.util.concurrent.Semaphore;
 public class Main {
 
     public static List<Volume> volumes;
-
 
     public static void main(String[] args){
         if(args.length < 1){
@@ -26,10 +28,9 @@ public class Main {
         initEssentials(args[0]);
 
         Semaphore mainSemaphore = new Semaphore(0);
-        for(int i = 0; i < Const.COUNT_OF_BOSS_THREADS; i++){
-            Thread thread = new Thread(new BossTask(mainSemaphore));
-            thread.start();
-        }
+        TaskManager.TASK_MANAGER.allTasks.get(Task.BossTask).getValue().forEach( task -> {
+            task.setTaskAssigned(null, mainSemaphore);
+        });
         try {
             mainSemaphore.acquire(Const.COUNT_OF_BOSS_THREADS);
         } catch (InterruptedException e) {
@@ -43,6 +44,8 @@ public class Main {
         FileOutput.writeToStateFile(FileOutput.outputRootDirectory + Const.STATE_FILE_NAME, "File - OK");
 
         FileInput.closeAllInputs();
+        TaskManager.TASK_MANAGER.killAllThreads();
+        System.out.println(ATask.assignCount+"/"+ATask.freedCount);
     }
 
     public static void initEssentials(String fileName){
